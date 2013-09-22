@@ -1,0 +1,75 @@
+#!/bin/sh
+
+Error(){ printf '%s\n' "$1" >&2; exit 1; }
+
+case $# in
+    (3) ;;
+    (*) Error "Usage: video2gif <videofile> <startposition> <duration>
+
+Environment variables:
+
+- VIDEO2GIF_SCALE: Percentile scaling of output.  Default 40.
+
+- VIDEO2GIF_FRAMESTEP: Use every nth frame of the source video, where this is n.
+  Default is 3, meaning 2/3 of frames are discarded.  Cuts down file size but
+  result is usually fine; set to 1 to preserve all frames.
+
+- VIDEO2GIF_DELAY: Inter-frame delay in 10ms units.  Default is ImageMagick
+  default.  (See -delay switch of ImageMagick.)
+
+FRAMESTEP and DELAY have to correspond to preserve the FPS of the source
+material.  The defaults will preserve ~24 FPS.
+
+- VIDEO2GIF_FUZZ: Percentile fuzzy color selection for GIF optimization.  See
+  -fuzz switch of ImageMagick for details.  Default is 3.
+
+- VIDEO2GIF_PNGZ: Compression of temporary PNGs, max 9.  Default 6.
+"
+esac
+
+file=$1
+start=$2
+endpos=$3
+
+tmpdir=${TMPDIR:-/tmp}/video2gif$$
+mkdir "$tmpdir" || Error "Could not create directory $tmpdir"
+chmod 700 "$tmpdir" || Error "Could not set permissions on $tmpdir"
+trap 'rm -rf -- "$tmpdir"; exit 1' INT TERM
+trap 'rm -rf -- "$tmpdir"' EXIT
+
+case $file in
+    (/*) absfile=file ;;
+    (*)
+        oldIFS=$IFS
+        IFS=
+        absfile=$(pwd)/$file
+        IFS=$oldIFS
+esac
+outfile=$file-$start+$endpos.gif
+absoutfile=$absfile-$start+$endpos.gif
+
+cd "$tmpdir"
+
+step=${VIDEO2GIF_FRAMESTEP:-3}
+echo "Extracting PNGs with MPlayer, using 1/$step of original FPS ..."
+mplayer "$absfile" -ss "$start" -endpos "$endpos" \
+    -ao null -vf framestep="$step" -vo png:z="${VIDEO2GIF_PNGZ:-6}"
+
+scale=${VIDEO2GIF_SCALE:-40}
+echo "Scaling PNGs to $scale% ..."
+i=0; for png in *.png; do i=$(($i+1)); done
+printf 'Remaining: '
+for png in *.png
+do
+    printf '%s ' $i; i=$(($i-1))
+    convert "$png" -scale "$scale"% "$png"
+done
+echo
+unset i
+
+delay=${VIDEO2GIF_DELAY:+-delay "$VIDEO2GIF_DELAY"}
+fuzz=${VIDEO2GIF_FUZZ:-3}
+echo "Generating the GIF ..."
+convert $delay -fuzz "$fuzz"% *.png -layers Optimize "$absoutfile"
+
+echo "DONE: $outfile"
