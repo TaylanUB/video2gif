@@ -45,6 +45,8 @@ material.  The defaults will preserve ~24 FPS.
   -fuzz switch of ImageMagick for details.  Default is 3.
 
 - VIDEO2GIF_PNGZ: Compression of temporary PNGs, max 9.  Default 6.
+
+- VIDEO2GIF_NOSUB: Set to a non-empty string to disable subtitles.
 "
 }
 
@@ -84,6 +86,7 @@ step=${VIDEO2GIF_FRAMESTEP:-3}
 echo "Extracting PNGs with MPlayer, using 1/$step of original FPS ..."
 mplayer "$absfile" -ss "$start" -endpos "$endpos" \
     -ao null -vf framestep="$step" -vo png:z="${VIDEO2GIF_PNGZ:-6}" \
+    ${VIDEO2GIF_NOSUB:+-nosub} \
     || exit
 
 scale=${VIDEO2GIF_SCALE:-40}
