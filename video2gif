@@ -22,11 +22,10 @@
 
 # Code:
 
-Error(){ printf '%s\n' "$1" >&2; exit 1; }
-
-case $# in
-    (3) ;;
-    (*) Error "Usage: video2gif <videofile> <startposition> <duration>
+Help()
+{
+    printf %s "\
+Usage: video2gif <videofile> <startposition> <duration>
 
 Environment variables:
 
@@ -47,6 +46,15 @@ material.  The defaults will preserve ~24 FPS.
 
 - VIDEO2GIF_PNGZ: Compression of temporary PNGs, max 9.  Default 6.
 "
+}
+
+case $1 in (-h | --help | '-?')
+        Help; exit
+esac
+
+case $# in
+    (3) ;;
+    (*) Help; exit 1
 esac
 
 file=$1
@@ -54,8 +62,8 @@ start=$2
 endpos=$3
 
 tmpdir=${TMPDIR:-/tmp}/video2gif$$
-mkdir "$tmpdir" || Error "Could not create directory $tmpdir"
-chmod 700 "$tmpdir" || Error "Could not set permissions on $tmpdir"
+mkdir "$tmpdir" || exit
+chmod 700 "$tmpdir" || exit
 trap 'rm -rf -- "$tmpdir"; exit 1' INT TERM
 trap 'rm -rf -- "$tmpdir"' EXIT
 
