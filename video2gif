@@ -42,7 +42,7 @@ FRAMESTEP and DELAY have to correspond to preserve the FPS of the source
 material.  The defaults will preserve ~24 FPS.
 
 - VIDEO2GIF_FUZZ: Percentile fuzzy color selection for GIF optimization.  See
-  -fuzz switch of ImageMagick for details.  Default is 3.
+  -fuzz switch of ImageMagick for details.  Default is 2.
 
 - VIDEO2GIF_PNGZ: Compression of temporary PNGs, max 9.  Default 6.
 
@@ -102,7 +102,7 @@ echo
 unset i
 
 delay=${VIDEO2GIF_DELAY:+-delay "$VIDEO2GIF_DELAY"}
-fuzz=${VIDEO2GIF_FUZZ:-3}
+fuzz=${VIDEO2GIF_FUZZ:-2}
 echo "Generating the GIF ..."
 convert $delay -fuzz "$fuzz"% *.png -layers Optimize "$absoutfile" || exit
 
