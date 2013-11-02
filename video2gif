@@ -104,7 +104,8 @@ unset i
 delay=${VIDEO2GIF_DELAY:+-delay "$VIDEO2GIF_DELAY"}
 fuzz=${VIDEO2GIF_FUZZ:-2}
 echo "Generating the GIF ..."
-convert $delay -fuzz "$fuzz"% *.png -layers Optimize "$absoutfile" || exit
+convert $delay -fuzz "$fuzz"% *.png \
+    -ordered-dither o8x8,32 -layers Optimize "$absoutfile" || exit
 
 echo "DONE: $outfile"
 
