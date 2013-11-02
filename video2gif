@@ -44,6 +44,8 @@ material.  The defaults will preserve ~24 FPS.
 - VIDEO2GIF_FUZZ: Percentile fuzzy color selection for GIF optimization.  See
   -fuzz switch of ImageMagick for details.  Default is 2.
 
+- VIDEO2GIF_DITHER: Set to a non-empty string to add some dithering.
+
 - VIDEO2GIF_PNGZ: Compression of temporary PNGs, max 9.  Default 6.
 
 - VIDEO2GIF_NOSUB: Set to a non-empty string to disable subtitles.
@@ -102,10 +104,10 @@ echo
 unset i
 
 delay=${VIDEO2GIF_DELAY:+-delay "$VIDEO2GIF_DELAY"}
-fuzz=${VIDEO2GIF_FUZZ:-2}
+fuzz="-fuzz ${VIDEO2GIF_FUZZ:-2}%"
+dither=${VIDEO2GIF_DITHER:+-ordered-dither o8x8,32}
 echo "Generating the GIF ..."
-convert $delay -fuzz "$fuzz"% *.png \
-    -ordered-dither o8x8,32 -layers Optimize "$absoutfile" || exit
+convert $delay $fuzz *.png $dither -layers Optimize "$absoutfile" || exit
 
 echo "DONE: $outfile"
 
